@@ -1,5 +1,5 @@
 # Quartr-extraction-script
-A script that automatically pulls transcripts and presentationslides in text form from earnings calls of companies
+A script that automatically pulls transcripts and presentationslides in text form from earnings calls of companies using Quartrs API.
 
 Start manager.py to start extracting files.
 
