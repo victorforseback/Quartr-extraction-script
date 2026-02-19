@@ -9,6 +9,9 @@ import requests
 
 API_BASE = "https://api.quartr.com/public/v3"
 
+# Earnings-call event type IDs (per Quartr docs / your note)
+EARNINGS_CALL_EVENT_TYPE_IDS = {26, 27, 28, 29, 35, 36}
+
 
 def sanitize_slug(s: str, max_len: int = 80) -> str:
     s = s.strip().lower()
@@ -37,7 +40,7 @@ def list_transcript_documents_by_ticker(api_key: str, ticker: str, limit: int = 
                 "limit": limit,
                 "cursor": cursor,
                 "direction": "asc",
-                "expand": "event",
+                "expand": "event",  # required so we can read event.typeId
             },
         )
 
@@ -52,23 +55,24 @@ def list_transcript_documents_by_ticker(api_key: str, ticker: str, limit: int = 
             break
         cursor = int(next_cursor)
 
-    return all_items
+    # Filter to earnings-call event types only
+    filtered = []
+    for item in all_items:
+        event = item.get("event") or {}
+        event_type_id = event.get("typeId")
+        if event_type_id in EARNINGS_CALL_EVENT_TYPE_IDS:
+            filtered.append(item)
+
+    return filtered
 
 
 def write_meta_files(ticker: str, items: List[Dict[str, Any]], base_dir: Optional[Path] = None) -> Path:
-    """
-    Writes:
-      transcript_meta/<ticker>/_index.json
-      transcript_meta/<ticker>/<event-title>_<doc-id>.json
-    Returns the path to the index file.
-    """
     base_dir = base_dir or Path.cwd()
     ticker_slug = sanitize_slug(ticker)
 
-    out_dir = base_dir / "transcript_meta" / ticker_slug
+    out_dir = base_dir / "metadata" / ticker_slug
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Per-document meta files (optional but useful)
     for item in items:
         doc_id = item.get("id")
         event = item.get("event") or {}

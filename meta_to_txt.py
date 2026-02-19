@@ -99,11 +99,6 @@ def extract_text_from_raw_transcript(raw: Any) -> str:
 
 
 def meta_obj_to_txt(api_key: str, ticker: str, meta_obj: dict, base_dir: Optional[Path] = None) -> Path:
-    """
-    Given ONE transcript-document metadata object (the items from _index.json),
-    downloads its raw JSON and writes transcript_raw/<ticker>/<Title>_<id>.txt
-    Returns the written txt path.
-    """
     base_dir = base_dir or Path.cwd()
 
     file_url = meta_obj.get("fileUrl")
